@@ -1,2 +1,2 @@
 # BigBrother
-Cool FFXIV stuff.
+Cool stuff.
