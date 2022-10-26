@@ -7,6 +7,7 @@ using Dalamud.Interface.Windowing;
 using BigBrother.Windows;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState;
 
 namespace BigBrother
 {
@@ -19,8 +20,7 @@ namespace BigBrother
         private CommandManager CommandManager { get; init; }
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("BigBrother");
-        [PluginService]
-        internal ObjectTable ObjectTable { get; init; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static ObjectTable Objects { get; private set; } = null!;
 
 
 
@@ -38,7 +38,7 @@ namespace BigBrother
             //var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
             //var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
             WindowSystem.AddWindow(new ConfigWindow(this));
-            WindowSystem.AddWindow(new MonitorWindow(this));
+            WindowSystem.AddWindow(new MonitorWindow(this, Objects));
 
             this.CommandManager.AddHandler(ConfigCommand, new CommandInfo(OnCommand)
             {
