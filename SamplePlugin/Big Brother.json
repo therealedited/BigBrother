@@ -1,0 +1,11 @@
+{
+    "Author": "(edited)",
+    "Name": "Big Brother",
+    "Punchline": "A plugin to make you feel like big brother.",
+    "Description": "Allows you to track who has weapons and/or minions out in your current area.",
+    "InternalName": "bigBrother",
+    "ApplicableVersion": "any",
+    "Tags": [
+        "monitoring"
+    ]
+}

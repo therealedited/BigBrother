@@ -1,8 +1,8 @@
-﻿using Dalamud.Configuration;
+using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
 
-namespace SamplePlugin
+namespace BigBrother
 {
     [Serializable]
     public class Configuration : IPluginConfiguration
@@ -10,6 +10,12 @@ namespace SamplePlugin
         public int Version { get; set; } = 0;
 
         public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
+
+        public bool TrackPeople { get; set; } = false;
+
+        public bool MonitorMinions { get; set; } = false;
+
+        public bool MonitorWeapons { get; set; } = false;
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]
