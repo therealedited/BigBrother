@@ -8,6 +8,7 @@ using BigBrother.Windows;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState;
+using Dalamud.Game;
 
 namespace BigBrother
 {
@@ -20,9 +21,13 @@ namespace BigBrother
         private CommandManager CommandManager { get; init; }
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("BigBrother");
+
+        public MonitorWindow monitorWindow;
         [PluginService][RequiredVersion("1.0")] public static ObjectTable Objects { get; private set; } = null!;
 
         [PluginService][RequiredVersion("1.0")] public static TargetManager TargetManager{ get; private set; } = null!;
+
+        [PluginService][RequiredVersion("1.0")] public static Framework Framework { get; private set; } = null!;
 
 
 
@@ -39,8 +44,9 @@ namespace BigBrother
             // you might normally want to embed resources and load them from the manifest stream
             //var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
             //var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
+            monitorWindow = new MonitorWindow(this, Objects, TargetManager, Framework);
             WindowSystem.AddWindow(new ConfigWindow(this));
-            WindowSystem.AddWindow(new MonitorWindow(this, Objects, TargetManager));
+            WindowSystem.AddWindow(monitorWindow);
 
             this.CommandManager.AddHandler(ConfigCommand, new CommandInfo(OnCommand)
             {
@@ -59,6 +65,7 @@ namespace BigBrother
 
         public void Dispose()
         {
+            monitorWindow.Dispose();
             this.WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(ConfigCommand);
             this.CommandManager.RemoveHandler(MonitorCommand);

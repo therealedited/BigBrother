@@ -13,6 +13,14 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.GeneratedSheets;
+using Dalamud.Game;
+using System.Diagnostics;
+using Big_Brother.SeFunctions;
+using System.Collections;
+using System.Linq;
+using Big_Brother.Utils;
+using Lumina.Text;
+using System.Text.RegularExpressions;
 
 namespace BigBrother.Windows;
 
@@ -31,9 +39,13 @@ public class MonitorWindow : Window, IDisposable
     private const byte IsWeaponHidden2 = 0x02;//Thanks https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Offsets.cs
     private ObjectTable _objects;
     private TargetManager _targetManager;
+    private Framework _framework;
+    private PlaySound _sounds;
+
+    private Stopwatch counter = new Stopwatch();
 
 
-    public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager) : base(
+    public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager, Framework framework) : base(
         "Monitor")
     {
         this.Size = new Vector2(232, 300);
@@ -42,9 +54,27 @@ public class MonitorWindow : Window, IDisposable
         this._plugin = plugin;
         _objects = objects;
         _targetManager = targetManager;
+        _framework = framework;
+        _framework.Update += this.OnFrameworkUpdate;
+        counter.Start();
+        _sounds = new PlaySound(new SigScanner());
     }
 
-    public void Dispose() {  
+    public void Dispose() {
+        _framework.Update -= this.OnFrameworkUpdate;
+    }
+
+    //Thanks https://git.anna.lgbt/ascclemens/PeepingTom/src/branch/main/Peeping%20Tom/TargetWatcher.cs#L48
+    public void OnFrameworkUpdate(Framework framework)
+    {
+        if(counter.ElapsedMilliseconds > 5000)
+        {
+            if(Configuration.TrackPeople) { 
+                PluginLog.Information("Cleaning...");
+                CleanMonitoringList();
+            }
+            counter.Restart();
+        }
     }
 
     public override void Draw()
@@ -89,6 +119,19 @@ public class MonitorWindow : Window, IDisposable
         return companionStruct->CompanionOwnerID;
     }
 
+
+    //Why?
+    public bool IsCharacterIgnored(string name)
+    {
+        var allIgnoredPlayers = new List<string>();
+
+        foreach (Player p in Configuration.ignorePlayers)
+        {
+            allIgnoredPlayers.Add(p.name);
+        }
+
+        return allIgnoredPlayers.FirstOrDefault(stringToCheck => stringToCheck.Contains(name)) != null ;
+    }
     private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
     {
         ImGui.BeginGroup();
@@ -120,6 +163,12 @@ public class MonitorWindow : Window, IDisposable
             return;
         }
 
+        if (IsCharacterIgnored(obj.Name.TextValue))
+        {
+            return;
+        }
+            
+
         ImGui.Selectable(obj.Name.TextValue, false, flags);
 
         var windowWidth = ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
@@ -132,7 +181,6 @@ public class MonitorWindow : Window, IDisposable
         //Thanks https://git.anna.lgbt/ascclemens/PeepingTom/src/branch/main/Peeping%20Tom/PluginUi.cs#L498
         var hovered = ImGui.IsItemHovered(ImGuiHoveredFlags.RectOnly);
         var leftClick = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
-        var rightClick = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Right);
 
         if (leftClick)
         {
@@ -156,6 +204,10 @@ public class MonitorWindow : Window, IDisposable
                 obj.ObjectKind == ObjectKind.Companion)
             {
                 _players.Add(obj.ObjectId, obj);
+                if (Configuration.PlaySounds)
+                {
+                    _sounds.Play(Big_Brother.Utils.Sounds.Sound02);
+                }
             }
             
 
