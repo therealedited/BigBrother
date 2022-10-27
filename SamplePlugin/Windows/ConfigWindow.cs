@@ -62,6 +62,11 @@ public class ConfigWindow : Window, IDisposable
                     this.Configuration.Save();
                 }
 
+                if (ImGui.Button("Clean List"))
+                {
+                    this.Configuration.CleaningStarted = true;
+                    this.Configuration.Save();
+                }
                 ImGui.EndTabItem();
             }
             if (ImGui.BeginTabItem("Debug"))

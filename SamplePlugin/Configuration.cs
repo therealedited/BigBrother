@@ -17,6 +17,8 @@ namespace BigBrother
 
         public bool MonitorWeapons { get; set; } = false;
 
+        public bool CleaningStarted { get; set; } = false;
+
         // the below exist just to make saving less cumbersome
         [NonSerialized]
         private DalamudPluginInterface? PluginInterface;

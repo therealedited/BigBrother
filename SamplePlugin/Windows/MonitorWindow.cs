@@ -11,6 +11,8 @@ using Lumina.Data;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using System.Threading;
 
 
 namespace BigBrother.Windows;
@@ -29,16 +31,18 @@ public class MonitorWindow : Window, IDisposable
     private const byte IsWeaponHidden1 = 0x01;//Thanks https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Offsets.cs
     private const byte IsWeaponHidden2 = 0x02;//Thanks https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Offsets.cs
     private ObjectTable _objects;
+    private TargetManager _targetManager;
 
 
-    public MonitorWindow(Plugin plugin, ObjectTable objects) : base(
+    public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager) : base(
         "Monitor")
     {
         this.Size = new Vector2(232, 300);
-        this.SizeCondition = ImGuiCond.Always;
+        this.SizeCondition = ImGuiCond.Once;
         this.Configuration = plugin.Configuration;
         this._plugin = plugin;
         _objects = objects;
+        _targetManager = targetManager;
     }
 
     public void Dispose() {  
@@ -54,13 +58,20 @@ public class MonitorWindow : Window, IDisposable
     {
         var height = ImGui.GetContentRegionAvail().Y;
         height -= ImGui.GetStyle().ItemSpacing.Y;
-
-        BuildMonitoringList();
-        if (ImGui.BeginListBox("monitoring", new Vector2(-1, height)))
+        var width = ImGui.GetContentRegionAvail().X;
+        if (this.Configuration.CleaningStarted)
         {
-            foreach (KeyValuePair<uint, GameObject> entry in _players)
+            CleanMonitoringList();
+        }
+        BuildMonitoringList();
+        if (ImGui.BeginListBox("###monitoring", new Vector2(width, height)))
+        {
+            if (this._plugin.Configuration.TrackPeople)
             {
-                AddEntry(entry.Value);
+                foreach (KeyValuePair<uint, GameObject> entry in _players)
+                {
+                    AddEntry(entry.Value);
+                }
             }
             ImGui.EndListBox();
         }
@@ -78,20 +89,26 @@ public class MonitorWindow : Window, IDisposable
         ImGui.BeginGroup();
         var status = "";
 
-        if (obj.ObjectKind is ObjectKind.Companion)
+        if (this._plugin.Configuration.MonitorMinions)
         {
-            status += "M";
-        }
-
-        if (obj is Character && obj.ObjectKind == ObjectKind.Player)
-        {
-            if (!IsWeaponHidden((Character)obj))
+            if (obj.ObjectKind is ObjectKind.Companion)
             {
-                status += "W";
+                status += "M";
             }
         }
 
-        if ((status is not "M") && (status is not "W"))
+        if (this._plugin.Configuration.MonitorWeapons)
+        {
+            if (obj is Character && obj.ObjectKind == ObjectKind.Player)
+            {
+                if (!IsWeaponHidden((Character)obj))
+                {
+                    status += "W";
+                }
+            }
+        }
+
+        if ((!status.Contains("M") && !(status.Contains("W"))))
         {
             return;
         }
@@ -104,6 +121,16 @@ public class MonitorWindow : Window, IDisposable
         ImGui.TextUnformatted(status);
 
         ImGui.EndGroup();
+
+        //Thanks https://git.anna.lgbt/ascclemens/PeepingTom/src/branch/main/Peeping%20Tom/PluginUi.cs#L498
+        var hovered = ImGui.IsItemHovered(ImGuiHoveredFlags.RectOnly);
+        PluginLog.Information(hovered.ToString());
+        var leftClick = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+
+        if (leftClick)
+        {
+            this._targetManager.Target = obj;
+        }
     }
 
     private void BuildMonitoringList()
@@ -115,7 +142,6 @@ public class MonitorWindow : Window, IDisposable
             if (obj.ObjectKind == ObjectKind.Player ||
                 obj.ObjectKind == ObjectKind.Companion)
             {
-                PluginLog.Information("Adding: ", obj.Name.TextValue);
                 _players.Add(obj.ObjectId, obj);
             }
             
@@ -132,5 +158,7 @@ public class MonitorWindow : Window, IDisposable
                 _players.Remove(entry.Key);
             }
         }
+        this.Configuration.CleaningStarted = false;
+        this.Configuration.Save();
     }
 }

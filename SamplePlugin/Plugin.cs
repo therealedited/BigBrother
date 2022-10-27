@@ -22,6 +22,8 @@ namespace BigBrother
         public WindowSystem WindowSystem = new("BigBrother");
         [PluginService][RequiredVersion("1.0")] public static ObjectTable Objects { get; private set; } = null!;
 
+        [PluginService][RequiredVersion("1.0")] public static TargetManager TargetManager{ get; private set; } = null!;
+
 
 
         public Plugin(
@@ -38,7 +40,7 @@ namespace BigBrother
             //var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
             //var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
             WindowSystem.AddWindow(new ConfigWindow(this));
-            WindowSystem.AddWindow(new MonitorWindow(this, Objects));
+            WindowSystem.AddWindow(new MonitorWindow(this, Objects, TargetManager));
 
             this.CommandManager.AddHandler(ConfigCommand, new CommandInfo(OnCommand)
             {
