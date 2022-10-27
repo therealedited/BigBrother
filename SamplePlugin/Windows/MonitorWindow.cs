@@ -29,7 +29,7 @@ public class MonitorWindow : Window, IDisposable
 {
     private Configuration Configuration;
 
-    private Dictionary<uint, GameObject>? _players = new Dictionary<uint, GameObject>();
+    private Dictionary<IntPtr, GameObject>? _players = new Dictionary<IntPtr, GameObject>();
 
     private Plugin _plugin;
 
@@ -97,7 +97,7 @@ public class MonitorWindow : Window, IDisposable
         {
             if (this._plugin.Configuration.TrackPeople)
             {
-                foreach (KeyValuePair<uint, GameObject> entry in _players)
+                foreach (KeyValuePair<IntPtr, GameObject> entry in _players)
                 {
                     AddEntry(entry.Value);
                 }
@@ -163,10 +163,10 @@ public class MonitorWindow : Window, IDisposable
             return;
         }
 
-        if (IsCharacterIgnored(obj.Name.TextValue))
+        /*if (IsCharacterIgnored(obj.Name.TextValue))
         {
             return;
-        }
+        }*/
             
 
         ImGui.Selectable(obj.Name.TextValue, false, flags);
@@ -198,12 +198,12 @@ public class MonitorWindow : Window, IDisposable
     {
         foreach (var obj in _objects)
         {
-            if (_players.ContainsKey(obj.ObjectId)) continue;
+            if (_players.ContainsKey(obj.Address)) continue;
 
             if (obj.ObjectKind == ObjectKind.Player ||
                 obj.ObjectKind == ObjectKind.Companion)
             {
-                _players.Add(obj.ObjectId, obj);
+                _players.Add(obj.Address, obj);
                 if (Configuration.PlaySounds)
                 {
                     _sounds.Play(Big_Brother.Utils.Sounds.Sound02);
@@ -216,9 +216,9 @@ public class MonitorWindow : Window, IDisposable
 
     private void CleanMonitoringList()
     {
-        foreach (KeyValuePair<uint, GameObject> entry in _players)
+        foreach (KeyValuePair<IntPtr, GameObject> entry in _players)
         {
-            if (_objects.SearchById(entry.Key) is null)
+            if (_objects.SearchById(entry.Value.ObjectId) is null)
             {
                 _players.Remove(entry.Key);
             }
