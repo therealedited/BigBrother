@@ -12,8 +12,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using System.Threading;
-
+using Lumina.Excel.GeneratedSheets;
 
 namespace BigBrother.Windows;
 
@@ -84,6 +83,12 @@ public class MonitorWindow : Window, IDisposable
         && (*((byte*)a.Address + WeaponHidden2) & IsWeaponHidden2)
         == IsWeaponHidden2;
 
+    public static unsafe uint getCompanionOwnerID(IntPtr companion)
+    {
+        FFXIVClientStructs.FFXIV.Client.Game.Character.Character* companionStruct = (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)(void*)companion;
+        return companionStruct->CompanionOwnerID;
+    }
+
     private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
     {
         ImGui.BeginGroup();
@@ -93,16 +98,18 @@ public class MonitorWindow : Window, IDisposable
         {
             if (obj.ObjectKind is ObjectKind.Companion)
             {
+                status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
                 status += "M";
             }
         }
 
         if (this._plugin.Configuration.MonitorWeapons)
         {
-            if (obj is Character && obj.ObjectKind == ObjectKind.Player)
+            if (obj is Character character && obj.ObjectKind == ObjectKind.Player)
             {
-                if (!IsWeaponHidden((Character)obj))
+                if (!IsWeaponHidden(character))
                 {
+                    status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
                     status += "W";
                 }
             }
@@ -124,12 +131,18 @@ public class MonitorWindow : Window, IDisposable
 
         //Thanks https://git.anna.lgbt/ascclemens/PeepingTom/src/branch/main/Peeping%20Tom/PluginUi.cs#L498
         var hovered = ImGui.IsItemHovered(ImGuiHoveredFlags.RectOnly);
-        PluginLog.Information(hovered.ToString());
         var leftClick = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+        var rightClick = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Right);
 
         if (leftClick)
         {
+            if(obj.ObjectKind == ObjectKind.Companion)
+            {
+                var ownerID = getCompanionOwnerID(obj.Address);
+                obj = _objects.SearchById(ownerID);
+            }
             this._targetManager.Target = obj;
+            
         }
     }
 
