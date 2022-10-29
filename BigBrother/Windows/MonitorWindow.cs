@@ -163,11 +163,10 @@ public class MonitorWindow : Window, IDisposable
             return;
         }
 
-        /*if (IsCharacterIgnored(obj.Name.TextValue))
+        if (IsCharacterIgnored(obj.Name.TextValue))
         {
             return;
-        }*/
-            
+        } 
 
         ImGui.Selectable(obj.Name.TextValue, false, flags);
 
