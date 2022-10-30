@@ -7,6 +7,7 @@ using Big_Brother.Utils;
 using Dalamud.Game;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using ImGuiNET;
 using ImGuiScene;
@@ -89,11 +90,6 @@ public class ConfigWindow : Window, IDisposable
                 }
                 ImGui.EndTabItem();
             }
-            if (ImGui.BeginTabItem("Report issues"))
-            {
-                ImGui.Text("Nothing but void here.");
-                ImGui.EndTabItem();
-            }
             if (ImGui.BeginTabItem("Ignore List"))
             {
                 ImGui.Text("Add player to the ignore list");
@@ -120,6 +116,14 @@ public class ConfigWindow : Window, IDisposable
                  {
                      ImGui.Text($"{p.name}");
                  }*/
+                ImGui.EndTabItem();
+            }
+            if (ImGui.BeginTabItem("Report issues"))
+            {
+                if (ImGui.Button("Big Brother Discord"))
+                {
+                    Util.OpenLink("https://discord.gg/qddbpeCWWw");
+                }
                 ImGui.EndTabItem();
             }
             ImGui.EndTabBar();
