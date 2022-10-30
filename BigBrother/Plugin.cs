@@ -45,7 +45,7 @@ namespace BigBrother
             //var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
             //var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
             monitorWindow = new MonitorWindow(this, Objects, TargetManager, Framework, WindowSystem);
-            WindowSystem.AddWindow(new ConfigWindow(this));
+            WindowSystem.AddWindow(new ConfigWindow(this, Framework));
             WindowSystem.AddWindow(monitorWindow);
 
             this.CommandManager.AddHandler(ConfigCommand, new CommandInfo(OnCommand)

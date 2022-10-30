@@ -93,9 +93,9 @@ public class MonitorWindow : Window, IDisposable
         var width = ImGui.GetContentRegionAvail().X;
         if (ImGui.Button("Open Settings", new Vector2(width, 30)))
         {
-            _windowSystem.GetWindow("Config")!.IsOpen = true;
+            _windowSystem.GetWindow("Config")!.IsOpen = !_windowSystem.GetWindow("Config")!.IsOpen;
         }
-        var listboxopened = ImGui.BeginListBox("###monitoring", new Vector2(width, height));
+        var listboxopened = ImGui.BeginListBox("###monitoring", new Vector2(width, height - 30));
 
 
         if (this.Configuration.CleaningStarted)

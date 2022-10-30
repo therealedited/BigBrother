@@ -1,9 +1,12 @@
 using System;
+using System.Diagnostics.Metrics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Big_Brother.Utils;
+using Dalamud.Game;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using ImGuiNET;
 using ImGuiScene;
@@ -14,10 +17,11 @@ public class ConfigWindow : Window, IDisposable
 {
     private Plugin Plugin;
     private Configuration Configuration;
+    private Framework _framework;
     private byte[] buffer = new byte[256];
     private static Mutex mutex = new Mutex();
 
-    public ConfigWindow(Plugin plugin) : base(
+    public ConfigWindow(Plugin plugin, Framework framework) : base(
         "Config", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         this.SizeConstraints = new WindowSizeConstraints
@@ -27,22 +31,28 @@ public class ConfigWindow : Window, IDisposable
         };
         this.Plugin = plugin;
         this.Configuration = plugin.Configuration;
+        _framework = framework;
+        _framework.Update += this.OnFrameworkUpdate;
     }
 
     public void Dispose()
     {
+        _framework.Update -= this.OnFrameworkUpdate;
+    }
+
+    public void OnFrameworkUpdate(Framework framework)
+    {
+        
     }
 
     public override void Draw()
     {
-        ImGuiTabBarFlags tabBarFlags = ImGuiTabBarFlags.None;
-
         var trackPeople = this.Configuration.TrackPeople;
         var trackWeapons = this.Configuration.MonitorWeapons;
         var trackMinions = this.Configuration.MonitorMinions;
         var playSounds = this.Configuration.PlaySounds;
 
-        if (ImGui.BeginTabBar("tabBar", tabBarFlags))
+        if (ImGui.BeginTabBar("tabBar", ImGuiTabBarFlags.NoCloseWithMiddleMouseButton))
         {
             if (ImGui.BeginTabItem("Config"))
             {
@@ -79,11 +89,10 @@ public class ConfigWindow : Window, IDisposable
                 }
                 ImGui.EndTabItem();
             }
-            if (ImGui.BeginTabItem("Debug"))
+            if (ImGui.BeginTabItem("Report issues"))
             {
-                ImGui.Text($"TrackPeople: {this.Plugin.Configuration.TrackPeople}");
-                ImGui.Text($"MonitorMinions: {this.Plugin.Configuration.MonitorMinions}");
-                ImGui.Text($"MonitorWeapons: {this.Plugin.Configuration.MonitorWeapons}");
+                ImGui.Text("Nothing but void here.");
+                ImGui.EndTabItem();
             }
             if (ImGui.BeginTabItem("Ignore List"))
             {
@@ -95,32 +104,27 @@ public class ConfigWindow : Window, IDisposable
                     Configuration.ignorePlayers.Add(new Player(System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length), ++Configuration.ignoredPlayersNumber));
                     Configuration.Save();
                 }
-                
                 foreach (Player player in Configuration.ignorePlayers)
                 {
                     AddEntry(player);
                 }
-                
                 ImGui.Separator();
-                if (ImGui.Button("DEBUG RESET"))
-                {
-                    Configuration.ignoredPlayersNumber = 0;
-                    Configuration.ignorePlayers.Clear();
-                    Configuration.Save();
-                }
-                ImGui.Text($"{Configuration.ignoredPlayersNumber}");
-                foreach (Player p in Configuration.ignorePlayers)
-                {
-                    ImGui.Text($"{p.name}");
-                }
-                
-            }
-            if (ImGui.BeginTabItem("Report issues"))
-            {
-                ImGui.Text("Nothing but void here.");
+                /* if (ImGui.Button("DEBUG RESET"))
+                 {
+                     Configuration.ignoredPlayersNumber = 0;
+                     Configuration.ignorePlayers.Clear();
+                     Configuration.Save();
+                 }
+                 ImGui.Text($"{Configuration.ignoredPlayersNumber}");
+                 foreach (Player p in Configuration.ignorePlayers)
+                 {
+                     ImGui.Text($"{p.name}");
+                 }*/
+                ImGui.EndTabItem();
             }
             ImGui.EndTabBar();
         }
+        
     }
 
     public void AddEntry(Player player)
@@ -129,11 +133,10 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.Button($"DEL##{player.id}"))
         {
-            mutex.WaitOne();
             Configuration.ignorePlayers.RemoveAt(player.id-1);
             --Configuration.ignoredPlayersNumber;
             Configuration.Save();
-            mutex.ReleaseMutex();
+
         }
     }
 }
