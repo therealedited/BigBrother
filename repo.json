@@ -3,7 +3,7 @@
         "Author": "edited",
         "Name": "Big Brother",
         "InternalName": "Big Brother",
-        "AssemblyVersion": "0.0.0.1",
+        "AssemblyVersion": "0.0.0.2",
         "Description": "Allows you to track who has weapons and/or minions out in your current area.",
         "ApplicableVersion": "any",
         "RepoUrl": "https://github.com/therealedited/BigBrother",
