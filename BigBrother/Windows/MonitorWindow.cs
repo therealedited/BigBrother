@@ -41,12 +41,12 @@ public class MonitorWindow : Window, IDisposable
     private TargetManager _targetManager;
     private Framework _framework;
     private PlaySound _sounds;
-
+    private WindowSystem _windowSystem;
     private Stopwatch counter = new Stopwatch();
 
 
-    public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager, Framework framework) : base(
-        "Monitor")
+    public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager, Framework framework, WindowSystem windowSystem) : base(
+        "Monitor", ImGuiWindowFlags.NoScrollbar)
     {
         this.Size = new Vector2(232, 300);
         this.SizeCondition = ImGuiCond.Once;
@@ -58,18 +58,21 @@ public class MonitorWindow : Window, IDisposable
         _framework.Update += this.OnFrameworkUpdate;
         counter.Start();
         _sounds = new PlaySound(new SigScanner());
+        _windowSystem = windowSystem;
     }
 
-    public void Dispose() {
+    public void Dispose()
+    {
         _framework.Update -= this.OnFrameworkUpdate;
     }
 
     //Thanks https://git.anna.lgbt/ascclemens/PeepingTom/src/branch/main/Peeping%20Tom/TargetWatcher.cs#L48
     public void OnFrameworkUpdate(Framework framework)
     {
-        if(counter.ElapsedMilliseconds > 5000)
+        if (counter.ElapsedMilliseconds > 5000)
         {
-            if(Configuration.TrackPeople) { 
+            if (Configuration.TrackPeople)
+            {
                 PluginLog.Information("Cleaning...");
                 CleanMonitoringList();
             }
@@ -80,7 +83,7 @@ public class MonitorWindow : Window, IDisposable
     public override void Draw()
     {
         DrawList();
-        
+
     }
 
     private void DrawList()
@@ -88,12 +91,19 @@ public class MonitorWindow : Window, IDisposable
         var height = ImGui.GetContentRegionAvail().Y;
         height -= ImGui.GetStyle().ItemSpacing.Y;
         var width = ImGui.GetContentRegionAvail().X;
+        if (ImGui.Button("Open Settings", new Vector2(width, 30)))
+        {
+            _windowSystem.GetWindow("Config")!.IsOpen = true;
+        }
+        var listboxopened = ImGui.BeginListBox("###monitoring", new Vector2(width, height));
+
+
         if (this.Configuration.CleaningStarted)
         {
             CleanMonitoringList();
         }
         BuildMonitoringList();
-        if (ImGui.BeginListBox("###monitoring", new Vector2(width, height)))
+        if (listboxopened)
         {
             if (this._plugin.Configuration.TrackPeople)
             {
@@ -130,7 +140,7 @@ public class MonitorWindow : Window, IDisposable
             allIgnoredPlayers.Add(p.name);
         }
 
-        return allIgnoredPlayers.FirstOrDefault(stringToCheck => stringToCheck.Contains(name)) != null ;
+        return allIgnoredPlayers.FirstOrDefault(stringToCheck => stringToCheck.Contains(name)) != null;
     }
     private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
     {
@@ -166,7 +176,7 @@ public class MonitorWindow : Window, IDisposable
         if (IsCharacterIgnored(obj.Name.TextValue))
         {
             return;
-        } 
+        }
 
         ImGui.Selectable(obj.Name.TextValue, false, flags);
 
@@ -183,13 +193,13 @@ public class MonitorWindow : Window, IDisposable
 
         if (leftClick)
         {
-            if(obj.ObjectKind == ObjectKind.Companion)
+            if (obj.ObjectKind == ObjectKind.Companion)
             {
                 var ownerID = getCompanionOwnerID(obj.Address);
                 obj = _objects.SearchById(ownerID);
             }
             this._targetManager.Target = obj;
-            
+
         }
     }
 
@@ -208,7 +218,7 @@ public class MonitorWindow : Window, IDisposable
                     _sounds.Play(Big_Brother.Utils.Sounds.Sound02);
                 }
             }
-            
+
 
         }
     }

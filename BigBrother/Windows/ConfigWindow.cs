@@ -115,6 +115,10 @@ public class ConfigWindow : Window, IDisposable
                 }
                 
             }
+            if (ImGui.BeginTabItem("Report issues"))
+            {
+                ImGui.Text("Nothing but void here.");
+            }
             ImGui.EndTabBar();
         }
     }

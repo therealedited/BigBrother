@@ -44,7 +44,7 @@ namespace BigBrother
             // you might normally want to embed resources and load them from the manifest stream
             //var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
             //var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
-            monitorWindow = new MonitorWindow(this, Objects, TargetManager, Framework);
+            monitorWindow = new MonitorWindow(this, Objects, TargetManager, Framework, WindowSystem);
             WindowSystem.AddWindow(new ConfigWindow(this));
             WindowSystem.AddWindow(monitorWindow);
 
