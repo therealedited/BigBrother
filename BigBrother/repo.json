@@ -1,0 +1,17 @@
+{
+    "Author": "edited",
+    "Name": "Big Brother",
+    "InternalName": "Big Brother",
+    "AssemblyVersion": "0.0.0.1",
+    "Description": "Allows you to track who has weapons and/or minions out in your current area.",
+    "ApplicableVersion": "any",
+    "RepoUrl": "https://github.com/therealedited/BigBrother",
+    "Tags": [
+        "monitoring"
+    ],
+    "DalamudApiLevel": 7,
+    "LoadPriority": 0,
+    "Punchline": "A plugin to make you feel like big brother.",
+    "DownloadLinkInstall": "https://github.com/therealedited/BigBrother/releases/download/experimental/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/therealedited/BigBrother/releases/download/experimental/latest.zip"
+}
