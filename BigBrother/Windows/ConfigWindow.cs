@@ -21,6 +21,7 @@ public class ConfigWindow : Window, IDisposable
     private Framework _framework;
     private byte[] buffer = new byte[256];
     private static Mutex mutex = new Mutex();
+    private int _monitorRange;
 
     public ConfigWindow(Plugin plugin, Framework framework) : base(
         "Config", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
@@ -34,11 +35,14 @@ public class ConfigWindow : Window, IDisposable
         this.Configuration = plugin.Configuration;
         _framework = framework;
         _framework.Update += this.OnFrameworkUpdate;
+        _monitorRange = Configuration.MonitorRange;
     }
 
     public void Dispose()
     {
         _framework.Update -= this.OnFrameworkUpdate;
+        Configuration.MonitorRange = _monitorRange;
+        Configuration.Save();
     }
 
     public void OnFrameworkUpdate(Framework framework)
@@ -88,6 +92,11 @@ public class ConfigWindow : Window, IDisposable
                     this.Configuration.CleaningStarted = true;
                     this.Configuration.Save();
                 }
+                if(ImGui.SliderInt("Monitor Radius", ref _monitorRange, 0, 100))
+                {
+                    Configuration.MonitorRange = _monitorRange;
+                }
+                
                 ImGui.EndTabItem();
             }
             if (ImGui.BeginTabItem("Ignore List"))

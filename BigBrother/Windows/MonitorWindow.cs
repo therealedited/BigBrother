@@ -142,10 +142,25 @@ public class MonitorWindow : Window, IDisposable
 
         return allIgnoredPlayers.FirstOrDefault(stringToCheck => stringToCheck.Contains(name)) != null;
     }
+
+    public int calculateEuclideanDistance(int x, int z)
+    {
+        return (int)Math.Sqrt(x*x + z*z);
+    }
     private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
     {
         ImGui.BeginGroup();
         var status = "";
+
+        if (IsCharacterIgnored(obj.Name.TextValue))
+        {
+            return;
+        }
+
+        if (calculateEuclideanDistance(obj.YalmDistanceX, obj.YalmDistanceZ) > Configuration.MonitorRange)
+        {
+            return;
+        }
 
         if (this._plugin.Configuration.MonitorMinions)
         {
@@ -169,11 +184,6 @@ public class MonitorWindow : Window, IDisposable
         }
 
         if ((!status.Contains("M") && !(status.Contains("W"))))
-        {
-            return;
-        }
-
-        if (IsCharacterIgnored(obj.Name.TextValue))
         {
             return;
         }

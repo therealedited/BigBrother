@@ -23,6 +23,8 @@ namespace BigBrother
 
         public bool PlaySounds { get; set; } = false;
 
+        public int MonitorRange { get; set; } = 30;
+
         public List<Player> ignorePlayers = new List<Player>();
 
         public int ignoredPlayersNumber = 0;

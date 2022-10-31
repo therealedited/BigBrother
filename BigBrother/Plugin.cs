@@ -22,7 +22,9 @@ namespace BigBrother
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("BigBrother");
 
-        public MonitorWindow monitorWindow;
+        private MonitorWindow _monitorWindow;
+        private ConfigWindow _configWindow;
+
         [PluginService][RequiredVersion("1.0")] public static ObjectTable Objects { get; private set; } = null!;
 
         [PluginService][RequiredVersion("1.0")] public static TargetManager TargetManager{ get; private set; } = null!;
@@ -44,9 +46,10 @@ namespace BigBrother
             // you might normally want to embed resources and load them from the manifest stream
             //var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
             //var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
-            monitorWindow = new MonitorWindow(this, Objects, TargetManager, Framework, WindowSystem);
-            WindowSystem.AddWindow(new ConfigWindow(this, Framework));
-            WindowSystem.AddWindow(monitorWindow);
+            _monitorWindow = new MonitorWindow(this, Objects, TargetManager, Framework, WindowSystem);
+            _configWindow = new ConfigWindow(this, Framework);
+            WindowSystem.AddWindow(_configWindow);
+            WindowSystem.AddWindow(_monitorWindow);
 
             this.CommandManager.AddHandler(ConfigCommand, new CommandInfo(OnCommand)
             {
@@ -65,7 +68,8 @@ namespace BigBrother
 
         public void Dispose()
         {
-            monitorWindow.Dispose();
+            _monitorWindow.Dispose();
+            _configWindow.Dispose();
             this.WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(ConfigCommand);
             this.CommandManager.RemoveHandler(MonitorCommand);
