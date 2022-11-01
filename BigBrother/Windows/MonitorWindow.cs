@@ -21,6 +21,7 @@ using System.Linq;
 using Big_Brother.Utils;
 using Lumina.Text;
 using System.Text.RegularExpressions;
+using Dalamud.Interface;
 
 namespace BigBrother.Windows;
 
@@ -43,6 +44,8 @@ public class MonitorWindow : Window, IDisposable
     private PlaySound _sounds;
     private WindowSystem _windowSystem;
     private Stopwatch counter = new Stopwatch();
+    private Vector4 _red = new Vector4(255, 0, 0, 255);
+    private Vector4 _white = new Vector4(255, 255, 255, 255);
 
 
     public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager, Framework framework, WindowSystem windowSystem) : base(
@@ -147,8 +150,10 @@ public class MonitorWindow : Window, IDisposable
     {
         return (int)Math.Sqrt(x*x + z*z);
     }
-    private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
+    private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None) //This function was clearly written with no goal in mind. Do not look unless you like to see spaghetti code.
     {
+        if (obj == null) return;
+
         ImGui.BeginGroup();
         var status = "";
 
@@ -162,24 +167,20 @@ public class MonitorWindow : Window, IDisposable
             return;
         }
 
-        if (this._plugin.Configuration.MonitorMinions)
+     
+
+        if (this._plugin.Configuration.MonitorMinions && obj.ObjectKind is ObjectKind.Companion)
         {
-            if (obj.ObjectKind is ObjectKind.Companion)
-            {
-                status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
-                status += "M";
-            }
+            status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
+            status += "M";
         }
 
-        if (this._plugin.Configuration.MonitorWeapons)
+        if (this._plugin.Configuration.MonitorWeapons && obj.ObjectKind is ObjectKind.Player)
         {
-            if (obj is Character character && obj.ObjectKind == ObjectKind.Player)
+            if (!IsWeaponHidden((Character)obj))
             {
-                if (!IsWeaponHidden(character))
-                {
-                    status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
-                    status += "W";
-                }
+                status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
+                status += "W";
             }
         }
 
@@ -188,12 +189,15 @@ public class MonitorWindow : Window, IDisposable
             return;
         }
 
+
+        
         ImGui.Selectable(obj.Name.TextValue, false, flags);
 
         var windowWidth = ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
         ImGui.SameLine(windowWidth - ImGui.CalcTextSize(status).X);
 
-        ImGui.TextUnformatted(status);
+        ImGui.TextColored(obj.ObjectKind == ObjectKind.Player ? _white : _red, status);
+        //ImGui.TextUnformatted(status);
 
         ImGui.EndGroup();
 
