@@ -24,7 +24,7 @@ public class ConfigWindow : Window, IDisposable
     private int _monitorRange;
 
     public ConfigWindow(Plugin plugin, Framework framework) : base(
-        "Config", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        "Config", ImGuiWindowFlags.None)
     {
         this.SizeConstraints = new WindowSizeConstraints
         {

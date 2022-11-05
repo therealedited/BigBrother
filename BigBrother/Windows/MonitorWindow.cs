@@ -22,6 +22,7 @@ using Big_Brother.Utils;
 using Lumina.Text;
 using System.Text.RegularExpressions;
 using Dalamud.Interface;
+using System.Drawing;
 
 namespace BigBrother.Windows;
 
@@ -190,14 +191,13 @@ public class MonitorWindow : Window, IDisposable
         }
 
 
-        
+        ImGui.PushStyleColor(ImGuiCol.Text, obj.ObjectKind == ObjectKind.Player ? _white: _red);
         ImGui.Selectable(obj.Name.TextValue, false, flags);
 
         var windowWidth = ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
         ImGui.SameLine(windowWidth - ImGui.CalcTextSize(status).X);
-
-        ImGui.TextColored(obj.ObjectKind == ObjectKind.Player ? _white : _red, status);
-        //ImGui.TextUnformatted(status);
+        ImGui.TextUnformatted(status);
+        ImGui.PopStyleColor();
 
         ImGui.EndGroup();
 
