@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Big_Brother.Utils
+namespace BigBrother.Utils
 {
     public enum Sounds : byte
     {

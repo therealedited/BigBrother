@@ -82,7 +82,7 @@ namespace BigBrother
                     WindowSystem.GetWindow("Monitor")!.IsOpen = true;
                     break;
                 case "config":
-                    WindowSystem.GetWindow("Config")!.IsOpen = true;
+                    WindowSystem.GetWindow("Configuration Window")!.IsOpen = true;
                     break;
             }
         }
@@ -94,7 +94,7 @@ namespace BigBrother
 
         public void DrawConfigUI()
         {
-            WindowSystem.GetWindow("Config")!.IsOpen = true;
+            WindowSystem.GetWindow("Configuration Window")!.IsOpen = true;
         }
     }
 }

@@ -1,4 +1,4 @@
-using Big_Brother.Utils;
+using BigBrother.Utils;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;

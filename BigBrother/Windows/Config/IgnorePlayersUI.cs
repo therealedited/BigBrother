@@ -1,0 +1,56 @@
+using BigBrother.Utils;
+using Dalamud.Interface;
+using ImGuiNET;
+
+namespace BigBrother.Windows
+{
+    internal partial class ConfigWindow
+    {
+        private byte[] buffer = new byte[256];
+        private void DrawIgnorePlayerUI()
+        {
+            using var raii = new ImGuiRaii();
+            var list = _plugin.Configuration.ignorePlayers;
+
+            if (!raii.Begin(() => ImGui.BeginTabItem("Ignore List"), ImGui.EndTabItem))
+            {
+                return;
+            }
+            ImGui.Text("Add player to the ignore list");
+            ImGui.InputText("##input", buffer, (uint)buffer.Length);
+            ImGui.SameLine();
+            if (ImGui.Button("+"))
+            {
+                var player = new Player(System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length), ++_plugin.Configuration.ignoredPlayersNumber);
+                _plugin.Configuration.ignorePlayers.Add(player);
+                _plugin.Configuration.Save();
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    buffer[i] = 0;
+                }
+            }
+            ImGui.Separator();
+            raii.Begin(() => ImGui.BeginTable("##IgnoredPlayersTable", 2), ImGui.EndTable);
+
+            ImGui.TableSetupColumn("##Delete", ImGuiTableColumnFlags.WidthFixed, 30);
+            ImGui.TableSetupColumn("Player name", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X);
+            ImGui.TableHeadersRow();
+            
+            for (var i = 0; i < list.Count; i++)
+            {
+                var player = (Player)list[i];
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                if (ImGui.Button($"DEL##{i}"))
+                {
+                    _plugin.Configuration.ignorePlayers.RemoveAt(i--);
+                    _plugin.Configuration.ignoredPlayersNumber -= 1;
+                    _plugin.Configuration.Save();
+                    continue;
+                }
+                ImGui.TableNextColumn();
+                ImGui.Text(player.name);
+            }
+        } 
+    }
+}

@@ -4,32 +4,21 @@ using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text;
-using Lumina.Data;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using Lumina.Excel.GeneratedSheets;
 using Dalamud.Game;
 using System.Diagnostics;
 using Big_Brother.SeFunctions;
-using System.Collections;
 using System.Linq;
-using Big_Brother.Utils;
-using Lumina.Text;
-using System.Text.RegularExpressions;
-using Dalamud.Interface;
-using System.Drawing;
+using BigBrother.Utils;
 
 namespace BigBrother.Windows;
 
 //Many thanks to ascclemens for her PeepingTom plugin.
 public class MonitorWindow : Window, IDisposable
 {
-    private Configuration Configuration;
+    private Configuration _configuration;
 
     private Dictionary<IntPtr, GameObject>? _players = new Dictionary<IntPtr, GameObject>();
 
@@ -50,11 +39,11 @@ public class MonitorWindow : Window, IDisposable
 
 
     public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager, Framework framework, WindowSystem windowSystem) : base(
-        "Monitor", ImGuiWindowFlags.NoScrollbar)
+        "Monitor", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         this.Size = new Vector2(232, 300);
         this.SizeCondition = ImGuiCond.Once;
-        this.Configuration = plugin.Configuration;
+        this._configuration = plugin.Configuration;
         this._plugin = plugin;
         _objects = objects;
         _targetManager = targetManager;
@@ -75,7 +64,7 @@ public class MonitorWindow : Window, IDisposable
     {
         if (counter.ElapsedMilliseconds > 5000)
         {
-            if (Configuration.TrackPeople)
+            if (_configuration.TrackPeople)
             {
                 PluginLog.Information("Cleaning...");
                 CleanMonitoringList();
@@ -92,17 +81,18 @@ public class MonitorWindow : Window, IDisposable
 
     private void DrawList()
     {
+        if (_players is null) return;
         var height = ImGui.GetContentRegionAvail().Y;
         height -= ImGui.GetStyle().ItemSpacing.Y;
         var width = ImGui.GetContentRegionAvail().X;
         if (ImGui.Button("Open Settings", new Vector2(width, 30)))
         {
-            _windowSystem.GetWindow("Config")!.IsOpen = !_windowSystem.GetWindow("Config")!.IsOpen;
+            _windowSystem.GetWindow("Configuration Window")!.IsOpen = !_windowSystem.GetWindow("Configuration Window")!.IsOpen;
         }
         var listboxopened = ImGui.BeginListBox("###monitoring", new Vector2(width, height - 30));
 
 
-        if (this.Configuration.CleaningStarted)
+        if (this._configuration.CleaningStarted)
         {
             CleanMonitoringList();
         }
@@ -139,7 +129,7 @@ public class MonitorWindow : Window, IDisposable
     {
         var allIgnoredPlayers = new List<string>();
 
-        foreach (Player p in Configuration.ignorePlayers)
+        foreach (Player p in _configuration.ignorePlayers)
         {
             allIgnoredPlayers.Add(p.name);
         }
@@ -163,7 +153,7 @@ public class MonitorWindow : Window, IDisposable
             return;
         }
 
-        if (calculateEuclideanDistance(obj.YalmDistanceX, obj.YalmDistanceZ) > Configuration.MonitorRange)
+        if (calculateEuclideanDistance(obj.YalmDistanceX, obj.YalmDistanceZ) > _configuration.MonitorRange)
         {
             return;
         }
@@ -219,6 +209,7 @@ public class MonitorWindow : Window, IDisposable
 
     private void BuildMonitoringList()
     {
+        if (_players is null) return;
         foreach (var obj in _objects)
         {
             if (_players.ContainsKey(obj.Address)) continue;
@@ -227,9 +218,9 @@ public class MonitorWindow : Window, IDisposable
                 obj.ObjectKind == ObjectKind.Companion)
             {
                 _players.Add(obj.Address, obj);
-                if (Configuration.PlaySounds)
+                if (_configuration.PlaySounds)
                 {
-                    _sounds.Play(Big_Brother.Utils.Sounds.Sound02);
+                    _sounds.Play(Sounds.Sound02);
                 }
             }
 
@@ -239,6 +230,7 @@ public class MonitorWindow : Window, IDisposable
 
     private void CleanMonitoringList()
     {
+        if (_players is null) return;
         foreach (KeyValuePair<IntPtr, GameObject> entry in _players)
         {
             if (_objects.SearchById(entry.Value.ObjectId) is null)
@@ -246,7 +238,7 @@ public class MonitorWindow : Window, IDisposable
                 _players.Remove(entry.Key);
             }
         }
-        this.Configuration.CleaningStarted = false;
-        this.Configuration.Save();
+        this._configuration.CleaningStarted = false;
+        this._configuration.Save();
     }
 }
