@@ -2,7 +2,7 @@
     {
         "Author": "edited",
         "Name": "Big Brother",
-        "InternalName": "Big Brother",
+        "InternalName": "BigBrother",
         "AssemblyVersion": "0.0.7",
         "Description": "Allows you to track who has weapons and/or minions out in your current area.",
         "ApplicableVersion": "any",
