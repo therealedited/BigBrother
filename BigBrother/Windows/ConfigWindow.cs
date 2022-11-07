@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
+using BigBrother.SeFunctions;
+using BigBrother.Utils;
 using Dalamud.Game;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
@@ -13,6 +16,8 @@ namespace BigBrother.Windows
         protected Plugin _plugin;
         private Framework _framework;
         private int _monitorRange;
+        private PlaySound _sounds;
+
 
         public ConfigWindow(Plugin plugin, Framework framework) : base(
             "Configuration Window", ImGuiWindowFlags.None)
@@ -26,6 +31,7 @@ namespace BigBrother.Windows
             _framework = framework;
             _framework.Update += this.OnFrameworkUpdate;
             _monitorRange = _plugin.Configuration.MonitorRange;
+            _sounds = new PlaySound(new SigScanner());
         }
 
         public void Dispose()

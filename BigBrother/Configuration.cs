@@ -21,6 +21,10 @@ namespace BigBrother
 
         public int MonitorRange { get; set; } = 30;
 
+        public Sounds SoundPlayer { get; set; } = Sounds.Sound01;
+
+        public Sounds SoundMinion { get; set; } = Sounds.Sound02;
+
         public List<Player> ignorePlayers = new List<Player>();
 
         public int ignoredPlayersNumber = 0;

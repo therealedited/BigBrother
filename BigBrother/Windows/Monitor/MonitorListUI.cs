@@ -37,9 +37,13 @@ namespace BigBrother.Windows
         }
 
         public bool IsCharacterIgnored(string name)
-        {
-            return _plugin.Configuration.ignorePlayers.FirstOrDefault(player => player.name.Contains(name)) != null;
-        }
+        =>
+            name switch
+            {
+                "" => false,
+                _ => _plugin.Configuration.ignorePlayers.FirstOrDefault(player => player.name.Contains(name)) != null,
+            };
+        
         private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
         {
             if (obj == null) return;
@@ -90,7 +94,7 @@ namespace BigBrother.Windows
         private void BuildMonitoringList()
         {
             foreach (var obj in _objects)
-            {
+            { 
                 if (obj is null) continue;
                 if (_plugin.TrackedPlayers.ContainsKey(obj.Address)) continue;
                 if (IsCharacterIgnored(obj.Name.TextValue)) continue;
@@ -99,8 +103,8 @@ namespace BigBrother.Windows
 
                 if (_plugin.Configuration.PlaySounds && _windowSystem.GetWindow("Monitor")!.IsOpen)
                 {
-                    if(obj.ObjectKind == ObjectKind.Companion) _sounds.Play(Sounds.Sound01);
-                    if(obj.ObjectKind == ObjectKind.Player) _sounds.Play(Sounds.Sound02);
+                    if(obj.ObjectKind == ObjectKind.Companion) _sounds.Play(_plugin.Configuration.SoundMinion);
+                    if(obj.ObjectKind == ObjectKind.Player) _sounds.Play(_plugin.Configuration.SoundPlayer);
                 }
                 _plugin.TrackedPlayers.Add(obj.Address, obj);
             }
@@ -128,7 +132,7 @@ namespace BigBrother.Windows
             objKind switch
             {
                 ObjectKind.Companion => gameObject1.Address == gameObject2.Address,
-                ObjectKind.Player => (gameObject1.Address == gameObject2.Address) && !Player.IsWeaponHidden((Character)gameObject2),
+                ObjectKind.Player => (gameObject1.Address == gameObject2.Address) && !Player.IsWeaponHidden((Character)gameObject2) && !IsCharacterIgnored(gameObject2.Name.TextValue),
                 _ => false,
             };
 

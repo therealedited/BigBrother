@@ -1,5 +1,6 @@
 using BigBrother.Utils;
 using Dalamud.Interface;
+using Dalamud.Logging;
 using ImGuiNET;
 
 namespace BigBrother.Windows
@@ -10,7 +11,6 @@ namespace BigBrother.Windows
         private void DrawIgnorePlayerUI()
         {
             using var raii = new ImGuiRaii();
-            var list = _plugin.Configuration.ignorePlayers;
 
             if (!raii.Begin(() => ImGui.BeginTabItem("Ignore List"), ImGui.EndTabItem))
             {
@@ -36,9 +36,9 @@ namespace BigBrother.Windows
             ImGui.TableSetupColumn("Player name", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X);
             ImGui.TableHeadersRow();
             
-            for (var i = 0; i < list.Count; i++)
+            for (var i = 0; i < _plugin.Configuration.ignorePlayers.Count; i++)
             {
-                var player = (Player)list[i];
+                var player = (Player)_plugin.Configuration.ignorePlayers[i];
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 if (ImGui.Button($"DEL##{i}"))
