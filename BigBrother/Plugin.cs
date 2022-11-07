@@ -9,6 +9,9 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState;
 using Dalamud.Game;
+using System.Collections.Generic;
+using System;
+using Dalamud.Game.ClientState.Objects.Types;
 
 namespace BigBrother
 {
@@ -22,8 +25,12 @@ namespace BigBrother
         public Configuration Configuration { get; init; }
         public WindowSystem WindowSystem = new("BigBrother");
 
+        public Dictionary<IntPtr, GameObject> TrackedPlayers = new Dictionary<IntPtr, GameObject>();
+
         private MonitorWindow _monitorWindow;
         private ConfigWindow _configWindow;
+
+
 
         [PluginService][RequiredVersion("1.0")] public static ObjectTable Objects { get; private set; } = null!;
 

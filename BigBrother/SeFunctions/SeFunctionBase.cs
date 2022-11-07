@@ -6,7 +6,7 @@ using Dalamud.Game;
 
 
 //Huge thanks to Ottermandias. https://github.com/Ottermandias/GatherBuddy/blob/ddd280a6a642a47daed2cb4f5b5900b80f4bdc50/GatherBuddy/SeFunctions/SeFunctionBase.cs
-namespace Big_Brother.SeFunctions
+namespace BigBrother.SeFunctions
 {
     public class SeFunctionBase<T> where T : Delegate
     {

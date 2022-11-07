@@ -5,19 +5,18 @@ using Dalamud.Logging;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BigBrother.Windows
 {
     internal partial class MonitorWindow
     {
+
         private void DrawMonitoringListUI()
         {
-            if (_players is null) return;
-            if (_trackedPlayers is null) return;
+            if (_plugin.TrackedPlayers is null) return;
 
             using var raii = new ImGuiRaii();
             var height = ImGui.GetContentRegionAvail().Y;
@@ -30,45 +29,18 @@ namespace BigBrother.Windows
             }
             if (this._plugin.Configuration.TrackPeople)
             {
-                foreach (KeyValuePair<IntPtr, GameObject> entry in _trackedPlayers)
+                foreach (KeyValuePair<IntPtr, GameObject> entry in _plugin.TrackedPlayers)
                 {
                     AddEntry(entry.Value);
                 }
             }
         }
 
-        //https://github.com/Ottermandias/Glamourer/blob/dbdaaf1ca89bcfd614c167614ce8120fb86f9fc2/Glamourer/CharacterExtensions.cs#L62
-        public static unsafe bool IsWeaponHidden(Character a)
-           => (*((byte*)a.Address + WeaponHidden1) & IsWeaponHidden1)
-            == IsWeaponHidden1
-            && (*((byte*)a.Address + WeaponHidden2) & IsWeaponHidden2)
-            == IsWeaponHidden2;
-
-        public static unsafe uint getCompanionOwnerID(IntPtr companion)
-        {
-            FFXIVClientStructs.FFXIV.Client.Game.Character.Character* companionStruct = (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)(void*)companion;
-            return companionStruct->CompanionOwnerID;
-        }
-
-
-        //Why?
         public bool IsCharacterIgnored(string name)
         {
-            var allIgnoredPlayers = new List<string>();
-
-            foreach (Player p in _configuration.ignorePlayers)
-            {
-                allIgnoredPlayers.Add(p.name);
-            }
-
-            return allIgnoredPlayers.FirstOrDefault(stringToCheck => stringToCheck.Contains(name)) != null;
+            return _plugin.Configuration.ignorePlayers.FirstOrDefault(player => player.name.Contains(name)) != null;
         }
-
-        public int calculateEuclideanDistance(int x, int z)
-        {
-            return (int)Math.Sqrt(x * x + z * z);
-        }
-        private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None) //This function was clearly written with no goal in mind. Do not look unless you like to see spaghetti code.
+        private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
         {
             if (obj == null) return;
             using var raii = new ImGuiRaii();
@@ -84,11 +56,11 @@ namespace BigBrother.Windows
 
             if (this._plugin.Configuration.MonitorWeapons && obj.ObjectKind is ObjectKind.Player)
             {
-                    status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
-                    status += "W";
+                status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
+                status += "W";
             }
 
-            
+
             ImGui.PushStyleColor(ImGuiCol.Text, obj.ObjectKind == ObjectKind.Player ? _white : _red);
             ImGui.Selectable(obj.Name.TextValue, false, flags);
 
@@ -107,7 +79,7 @@ namespace BigBrother.Windows
             {
                 if (obj.ObjectKind == ObjectKind.Companion)
                 {
-                    var ownerID = getCompanionOwnerID(obj.Address);
+                    var ownerID = Companion.GetCompanionOwnerID(obj.Address);
                     obj = _objects.SearchById(ownerID);
                 }
                 this._targetManager.Target = obj;
@@ -115,51 +87,50 @@ namespace BigBrother.Windows
             }
         }
 
-        private Dictionary<IntPtr, GameObject> BuildMonitoringList()
+        private void BuildMonitoringList()
         {
-            var _trackedPlayers = new Dictionary<IntPtr, GameObject>();
-
-
             foreach (var obj in _objects)
             {
-                if (_trackedPlayers!.ContainsKey(obj.Address)) //Don't add if the object already exists in the list.
-                {
-                    continue;
-                }
+                if (obj is null) continue;
+                if (_plugin.TrackedPlayers.ContainsKey(obj.Address)) continue;
+                if (IsCharacterIgnored(obj.Name.TextValue)) continue;
+                if (Maths.CalculateEuclideanDistance(obj.YalmDistanceX, obj.YalmDistanceZ) > _plugin.Configuration.MonitorRange) continue;
+                if (!(obj.ObjectKind == ObjectKind.Player && !Player.IsWeaponHidden((Character)obj)) && !(obj.ObjectKind == ObjectKind.Companion)) continue;
 
-                if (IsCharacterIgnored(obj.Name.TextValue))
+                if (_plugin.Configuration.PlaySounds && _windowSystem.GetWindow("Monitor")!.IsOpen)
                 {
-                    continue;
+                    if(obj.ObjectKind == ObjectKind.Companion) _sounds.Play(Sounds.Sound01);
+                    if(obj.ObjectKind == ObjectKind.Player) _sounds.Play(Sounds.Sound02);
                 }
-
-                if (calculateEuclideanDistance(obj.YalmDistanceX, obj.YalmDistanceZ) > _configuration.MonitorRange)
-                {
-                    continue;
-                }
-
-
-                if ((obj.ObjectKind == ObjectKind.Player && !IsWeaponHidden((Character)obj)) || obj.ObjectKind == ObjectKind.Companion)
-                {
-                    _trackedPlayers.Add(obj.Address, obj);
-                }
+                _plugin.TrackedPlayers.Add(obj.Address, obj);
             }
-            return _trackedPlayers;
         }
 
-        private Dictionary<IntPtr, GameObject> CleanMonitoringList()
+        private void CleanMonitoringList()
         {
-            var _trackedPlayers = new Dictionary<IntPtr, GameObject>();
-            var currentTrackedPlayers = BuildMonitoringList();
-            _trackedPlayers = currentTrackedPlayers.Intersect(_trackedPlayers).ToDictionary(s => s.Key, s => s.Value); //Leave the compiler to guess the types.
-            return _trackedPlayers;
-        }
-
-        private void PrintTrackedObjectList()
-        {
-            foreach(KeyValuePair<IntPtr, GameObject> trackedPlayer in _trackedPlayers)
+            bool valid = false;
+            foreach (KeyValuePair<IntPtr, GameObject> entry in _plugin.TrackedPlayers)
             {
-                PluginLog.Information(trackedPlayer.Key.ToString() + " - " + trackedPlayer.Value.Name.TextValue + "\n");
+                var gameObject = entry.Value;
+                foreach (var obj in _objects)
+                {
+                    if (IsStillValidTrack(obj.ObjectKind, obj, gameObject))
+                    {
+                        valid = true;
+                    }
+                }
+                if (!valid) _plugin.TrackedPlayers.Remove(entry.Key);
             }
         }
+
+        private bool IsStillValidTrack(ObjectKind objKind, GameObject gameObject1, GameObject gameObject2)
+        =>
+            objKind switch
+            {
+                ObjectKind.Companion => gameObject1.Address == gameObject2.Address,
+                ObjectKind.Player => (gameObject1.Address == gameObject2.Address) && !Player.IsWeaponHidden((Character)gameObject2),
+                _ => false,
+            };
+
     }
 }

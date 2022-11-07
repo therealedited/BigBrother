@@ -11,15 +11,11 @@ namespace BigBrother
     {
         public int Version { get; set; } = 0;
 
-        public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
-
         public bool TrackPeople { get; set; } = false;
 
         public bool MonitorMinions { get; set; } = false;
 
         public bool MonitorWeapons { get; set; } = false;
-
-        public bool CleaningStarted { get; set; } = false;
 
         public bool PlaySounds { get; set; } = false;
 

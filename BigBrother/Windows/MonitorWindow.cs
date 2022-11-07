@@ -9,9 +9,10 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Logging;
 using Dalamud.Game;
 using System.Diagnostics;
-using Big_Brother.SeFunctions;
+using BigBrother.SeFunctions;
 using System.Linq;
 using BigBrother.Utils;
+using Lumina.Excel.GeneratedSheets;
 
 namespace BigBrother.Windows
 {
@@ -19,17 +20,9 @@ namespace BigBrother.Windows
     //Many thanks to ascclemens for her PeepingTom plugin.
     internal partial class MonitorWindow : Window, IDisposable
     {
-        private Configuration _configuration;
-
         protected Dictionary<IntPtr, GameObject>? _players = new Dictionary<IntPtr, GameObject>();
-        protected Dictionary<IntPtr, GameObject>? _trackedPlayers = new Dictionary<IntPtr, GameObject>();
 
         protected Plugin _plugin;
-
-        protected const int WeaponHidden1 = 0x85F;//Thanks https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Offsets.cs
-        protected const int WeaponHidden2 = 0x73C; //Thanks https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Offsets.cs
-        protected const byte IsWeaponHidden1 = 0x01;//Thanks https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Offsets.cs
-        protected const byte IsWeaponHidden2 = 0x02;//Thanks https://github.com/Ottermandias/Glamourer/blob/main/Glamourer/Offsets.cs
         protected ObjectTable _objects;
         protected TargetManager _targetManager;
         protected Framework _framework;
@@ -46,7 +39,6 @@ namespace BigBrother.Windows
         {
             this.Size = new Vector2(232, 300);
             this.SizeCondition = ImGuiCond.Once;
-            this._configuration = plugin.Configuration;
             this._plugin = plugin;
             _objects = objects;
             _targetManager = targetManager;
@@ -68,9 +60,10 @@ namespace BigBrother.Windows
         {
             if (counterCleaning.ElapsedMilliseconds > 500)
             {
-                if (_configuration.TrackPeople)
+                if (_plugin.Configuration.TrackPeople)
                 {
-                    _trackedPlayers = BuildMonitoringList();
+                    BuildMonitoringList();
+                    CleanMonitoringList();
                 }
                 counterCleaning.Restart();
             }

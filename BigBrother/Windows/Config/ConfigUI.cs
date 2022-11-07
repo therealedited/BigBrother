@@ -36,17 +36,11 @@ namespace BigBrother.Windows
                 this._plugin.Configuration.Save();
             }
 
-            /*if (ImGui.Checkbox("Play Sounds", ref playSounds))
+            if (ImGui.Checkbox("Play Sounds", ref playSounds))
             {
-                this.Configuration.PlaySounds = playSounds;
-                this.Configuration.Save();
-            }*/
-
-            /*if (ImGui.Button("Clean List"))
-            {
-                this._plugin.Configuration.CleaningStarted = true;
+                this._plugin.Configuration.PlaySounds = playSounds;
                 this._plugin.Configuration.Save();
-            }*/
+            }
             if (ImGui.SliderInt("Monitor Radius", ref _monitorRange, 0, 100))
             {
                 _plugin.Configuration.MonitorRange = _monitorRange;
