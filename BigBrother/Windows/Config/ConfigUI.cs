@@ -77,11 +77,11 @@ namespace BigBrother.Windows
                 _plugin.Configuration.MonitorRange = _monitorRange;
             }
 
-            if (ImGui.BeginCombo("Player notification", playerSound))
+            if (ImGui.BeginCombo("Player notification", _plugin.Configuration.SoundPlayer_s))
             {
                 HandleComboBox(ObjectKind.Player);
             }
-            if (ImGui.BeginCombo("Minion notification", minionSound))
+            if (ImGui.BeginCombo("Minion notification", _plugin.Configuration.SoundMinion_s))
             {
                 HandleComboBox(ObjectKind.Companion);
             }
@@ -98,12 +98,14 @@ namespace BigBrother.Windows
                     if (type is ObjectKind.Player)
                     {
                         playerSound = comboBoxSounds[i].name!;
+                        _plugin.Configuration.SoundPlayer_s = comboBoxSounds[i].name!;
                         _plugin.Configuration.SoundPlayer = comboBoxSounds[i].sound;
                         _sounds.Play(_plugin.Configuration.SoundPlayer);
                         _plugin.Configuration.Save();
                     } else if (type is ObjectKind.Companion)
                     {
                         minionSound = comboBoxSounds[i].name!;
+                        _plugin.Configuration.SoundMinion_s = comboBoxSounds[i].name!;
                         _plugin.Configuration.SoundMinion = comboBoxSounds[i].sound;
                         _sounds.Play(_plugin.Configuration.SoundMinion);
                         _plugin.Configuration.Save();

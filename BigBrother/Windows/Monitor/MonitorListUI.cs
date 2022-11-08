@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Logging;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -83,7 +84,7 @@ namespace BigBrother.Windows
             {
                 if (obj.ObjectKind == ObjectKind.Companion)
                 {
-                    var ownerID = Companion.GetCompanionOwnerID(obj.Address);
+                    var ownerID = Utils.Companion.GetCompanionOwnerID(obj.Address);
                     obj = _objects.SearchById(ownerID);
                 }
                 this._targetManager.Target = obj;
@@ -121,9 +122,15 @@ namespace BigBrother.Windows
                     if (IsStillValidTrack(obj.ObjectKind, obj, gameObject))
                     {
                         valid = true;
+                        break;
                     }
                 }
-                if (!valid) _plugin.TrackedPlayers.Remove(entry.Key);
+                if (!valid)
+                {
+                    _plugin.TrackedPlayers.Remove(entry.Key);
+
+                }
+                
             }
         }
 
