@@ -21,38 +21,27 @@ namespace BigBrother.Windows
     internal partial class MonitorWindow : Window, IDisposable
     {
         protected Dictionary<IntPtr, GameObject>? _players = new Dictionary<IntPtr, GameObject>();
-
-        protected Plugin _plugin;
-        protected ObjectTable _objects;
-        protected TargetManager _targetManager;
-        protected Framework _framework;
         protected PlaySound _sounds;
-        protected WindowSystem _windowSystem;
         protected Stopwatch counterCleaning = new Stopwatch();
         protected Stopwatch counterUpdate = new Stopwatch();
         protected Vector4 _red = new Vector4(255, 0, 0, 255);
         protected Vector4 _white = new Vector4(255, 255, 255, 255);
 
 
-        public MonitorWindow(Plugin plugin, ObjectTable objects, TargetManager targetManager, Framework framework, WindowSystem windowSystem) : base(
+        public MonitorWindow() : base(
             "Monitor", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
         {
             this.Size = new Vector2(232, 300);
             this.SizeCondition = ImGuiCond.Once;
-            this._plugin = plugin;
-            _objects = objects;
-            _targetManager = targetManager;
-            _framework = framework;
-            _framework.Update += this.OnFrameworkUpdate;
+            Plugin.Framework.Update += this.OnFrameworkUpdate;
             counterCleaning.Start();
             counterUpdate.Start();
             _sounds = new PlaySound(new SigScanner());
-            _windowSystem = windowSystem;
         }
 
         public void Dispose()
         {
-            _framework.Update -= this.OnFrameworkUpdate;
+            Plugin.Framework.Update -= this.OnFrameworkUpdate;
         }
 
         //Thanks https://git.anna.lgbt/ascclemens/PeepingTom/src/branch/main/Peeping%20Tom/TargetWatcher.cs#L48
@@ -60,7 +49,7 @@ namespace BigBrother.Windows
         {
             if (counterCleaning.ElapsedMilliseconds > 500)
             {
-                if (_plugin.Configuration.TrackPeople)
+                if (Plugin.Configuration.TrackPeople)
                 {
                     BuildMonitoringList();
                     CleanMonitoringList();
@@ -73,7 +62,7 @@ namespace BigBrother.Windows
         {
             if (ImGui.Button("Open Settings", new Vector2(ImGui.GetContentRegionAvail().X, 30)))
             {
-                _windowSystem.GetWindow("Configuration Window")!.IsOpen = !_windowSystem.GetWindow("Configuration Window")!.IsOpen;
+                Plugin.WindowSystem.GetWindow("Configuration Window")!.IsOpen = !Plugin.WindowSystem.GetWindow("Configuration Window")!.IsOpen;
             }
             DrawMonitoringListUI();
         }

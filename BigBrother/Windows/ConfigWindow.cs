@@ -13,13 +13,11 @@ namespace BigBrother.Windows
 
     internal partial class ConfigWindow : Window, IDisposable
     {
-        protected Plugin _plugin;
-        private Framework _framework;
         private int _monitorRange;
         private PlaySound _sounds;
 
 
-        public ConfigWindow(Plugin plugin, Framework framework) : base(
+        public ConfigWindow() : base(
             "Configuration Window", ImGuiWindowFlags.None)
         {
             this.SizeConstraints = new WindowSizeConstraints
@@ -27,29 +25,18 @@ namespace BigBrother.Windows
                 MinimumSize = new Vector2(375, 330),
                 MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
             };
-            _plugin = plugin;
-            _framework = framework;
-            _framework.Update += this.OnFrameworkUpdate;
-            _monitorRange = _plugin.Configuration.MonitorRange;
+            _monitorRange = Plugin.Configuration.MonitorRange;
             _sounds = new PlaySound(new SigScanner());
         }
 
         public void Dispose()
         {
-            _framework.Update -= this.OnFrameworkUpdate;
-            _plugin.Configuration.MonitorRange = _monitorRange;
-            _plugin.Configuration.Save();
-        }
-
-        public void OnFrameworkUpdate(Framework framework)
-        {
-
+            Plugin.Configuration.MonitorRange = _monitorRange;
+            Plugin.Configuration.Save();
         }
 
         public override void Draw()
         {
-            if (_plugin is null) return;
-
             using var raii = new ImGuiRaii();
             if (!raii.Begin(() => ImGui.BeginTabBar("##tabBar"), ImGui.EndTabBar))
                 return;

@@ -21,9 +21,9 @@ namespace BigBrother.Windows
             ImGui.SameLine();
             if (ImGui.Button("+"))
             {
-                var player = new Player(System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length), ++_plugin.Configuration.ignoredPlayersNumber);
-                _plugin.Configuration.ignorePlayers.Add(player);
-                _plugin.Configuration.Save();
+                var player = new Player(System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length), ++Plugin.Configuration.ignoredPlayersNumber);
+                Plugin.Configuration.ignorePlayers.Add(player);
+                Plugin.Configuration.Save();
                 for (int i = 0; i < buffer.Length; i++)
                 {
                     buffer[i] = 0;
@@ -36,16 +36,16 @@ namespace BigBrother.Windows
             ImGui.TableSetupColumn("Player name", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X);
             ImGui.TableHeadersRow();
             
-            for (var i = 0; i < _plugin.Configuration.ignorePlayers.Count; i++)
+            for (var i = 0; i < Plugin.Configuration.ignorePlayers.Count; i++)
             {
-                var player = (Player)_plugin.Configuration.ignorePlayers[i];
+                var player = (Player)Plugin.Configuration.ignorePlayers[i];
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 if (ImGui.Button($"DEL##{i}"))
                 {
-                    _plugin.Configuration.ignorePlayers.RemoveAt(i--);
-                    _plugin.Configuration.ignoredPlayersNumber -= 1;
-                    _plugin.Configuration.Save();
+                    Plugin.Configuration.ignorePlayers.RemoveAt(i--);
+                    Plugin.Configuration.ignoredPlayersNumber -= 1;
+                    Plugin.Configuration.Save();
                     continue;
                 }
                 ImGui.TableNextColumn();

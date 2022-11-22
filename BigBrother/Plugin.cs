@@ -22,14 +22,13 @@ namespace BigBrother
         private const string MonitorCommand = "/bb";
         private DalamudPluginInterface PluginInterface { get; init; }
         private CommandManager CommandManager { get; init; }
-        public Configuration Configuration { get; init; }
-        public WindowSystem WindowSystem = new("BigBrother");
+        public static Configuration Configuration { get; private set; } = null!;
+        public static WindowSystem WindowSystem = new("BigBrother");
 
-        public Dictionary<IntPtr, GameObject> TrackedPlayers = new Dictionary<IntPtr, GameObject>();
+        public static Dictionary<IntPtr, GameObject> TrackedPlayers = new Dictionary<IntPtr, GameObject>();
 
         private MonitorWindow _monitorWindow;
         private ConfigWindow _configWindow;
-
 
 
         [PluginService][RequiredVersion("1.0")] public static ObjectTable Objects { get; private set; } = null!;
@@ -47,16 +46,13 @@ namespace BigBrother
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
 
-            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Configuration.Initialize(this.PluginInterface);
+            Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            Configuration.Initialize(this.PluginInterface);
 
-            // you might normally want to embed resources and load them from the manifest stream
-            //var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
-            //var goatImage = this.PluginInterface.UiBuilder.LoadImage(imagePath);
-            _monitorWindow = new MonitorWindow(this, Objects, TargetManager, Framework, WindowSystem);
-            _configWindow = new ConfigWindow(this, Framework);
-            WindowSystem.AddWindow(_configWindow);
+            _monitorWindow = new MonitorWindow();
+            _configWindow = new ConfigWindow();
             WindowSystem.AddWindow(_monitorWindow);
+            WindowSystem.AddWindow(_configWindow);
 
             this.CommandManager.AddHandler(ConfigCommand, new CommandInfo(OnCommand)
             {
@@ -77,7 +73,7 @@ namespace BigBrother
         {
             _monitorWindow.Dispose();
             _configWindow.Dispose();
-            this.WindowSystem.RemoveAllWindows();
+            WindowSystem.RemoveAllWindows();
             this.CommandManager.RemoveHandler(ConfigCommand);
             this.CommandManager.RemoveHandler(MonitorCommand);
         }
@@ -96,7 +92,7 @@ namespace BigBrother
 
         private void DrawUI()
         {
-            this.WindowSystem.Draw();
+            WindowSystem.Draw();
         }
 
         public void DrawConfigUI()

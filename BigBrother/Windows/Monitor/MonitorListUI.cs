@@ -17,7 +17,7 @@ namespace BigBrother.Windows
 
         private void DrawMonitoringListUI()
         {
-            if (_plugin.TrackedPlayers is null) return;
+            if (Plugin.TrackedPlayers is null) return;
 
             using var raii = new ImGuiRaii();
             var height = ImGui.GetContentRegionAvail().Y;
@@ -28,9 +28,9 @@ namespace BigBrother.Windows
             {
                 return;
             }
-            if (this._plugin.Configuration.TrackPeople)
+            if (Plugin.Configuration.TrackPeople)
             {
-                foreach (KeyValuePair<IntPtr, GameObject> entry in _plugin.TrackedPlayers)
+                foreach (KeyValuePair<IntPtr, GameObject> entry in Plugin.TrackedPlayers)
                 {
                     AddEntry(entry.Value);
                 }
@@ -42,7 +42,7 @@ namespace BigBrother.Windows
             name switch
             {
                 "" => false,
-                _ => _plugin.Configuration.ignorePlayers.FirstOrDefault(player => player.name.Contains(name)) != null,
+                _ => Plugin.Configuration.ignorePlayers.FirstOrDefault(player => player.name.Contains(name)) != null,
             };
         
         private void AddEntry(GameObject? obj, ImGuiSelectableFlags flags = ImGuiSelectableFlags.None)
@@ -53,13 +53,13 @@ namespace BigBrother.Windows
             var status = "";
             ImGui.BeginGroup();
 
-            if (this._plugin.Configuration.MonitorMinions && obj.ObjectKind is ObjectKind.Companion)
+            if (Plugin.Configuration.MonitorMinions && obj.ObjectKind is ObjectKind.Companion)
             {
                 status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
                 status += "M";
             }
 
-            if (this._plugin.Configuration.MonitorWeapons && obj.ObjectKind is ObjectKind.Player)
+            if (Plugin.Configuration.MonitorWeapons && obj.ObjectKind is ObjectKind.Player)
             {
                 status += $"{obj.YalmDistanceX} - {obj.YalmDistanceZ} | ";
                 status += "W";
@@ -85,39 +85,41 @@ namespace BigBrother.Windows
                 if (obj.ObjectKind == ObjectKind.Companion)
                 {
                     var ownerID = Utils.Companion.GetCompanionOwnerID(obj.Address);
-                    obj = _objects.SearchById(ownerID);
+                    obj = Plugin.Objects.SearchById(ownerID);
                 }
-                this._targetManager.Target = obj;
+                Plugin.TargetManager.Target = obj;
 
             }
         }
 
         private void BuildMonitoringList()
         {
-            foreach (var obj in _objects)
+            foreach (var obj in Plugin.Objects)
             { 
                 if (obj is null) continue;
-                if (_plugin.TrackedPlayers.ContainsKey(obj.Address)) continue;
+                if (Plugin.TrackedPlayers.ContainsKey(obj.Address)) continue;
                 if (IsCharacterIgnored(obj.Name.TextValue)) continue;
-                if (Maths.CalculateEuclideanDistance(obj.YalmDistanceX, obj.YalmDistanceZ) > _plugin.Configuration.MonitorRange) continue;
+                if (Maths.CalculateEuclideanDistance(obj.YalmDistanceX, obj.YalmDistanceZ) > Plugin.Configuration.MonitorRange) continue;
                 if (!(obj.ObjectKind == ObjectKind.Player && !Player.IsWeaponHidden((Character)obj)) && !(obj.ObjectKind == ObjectKind.Companion)) continue;
+                if (obj.Name.TextValue == "") continue;
 
-                if (_plugin.Configuration.PlaySounds && _windowSystem.GetWindow("Monitor")!.IsOpen)
+                if (Plugin.Configuration.PlaySounds && Plugin.WindowSystem.GetWindow("Monitor")!.IsOpen)
                 {
-                    if(obj.ObjectKind == ObjectKind.Companion) _sounds.Play(_plugin.Configuration.SoundMinion);
-                    if(obj.ObjectKind == ObjectKind.Player) _sounds.Play(_plugin.Configuration.SoundPlayer);
+                    if(obj.ObjectKind == ObjectKind.Companion) _sounds.Play(Plugin.Configuration.SoundMinion);
+                    if(obj.ObjectKind == ObjectKind.Player) _sounds.Play(Plugin.Configuration.SoundPlayer);
                 }
-                _plugin.TrackedPlayers.Add(obj.Address, obj);
+                PluginLog.Information($"Adding {obj.Name.TextValue}");
+                Plugin.TrackedPlayers.Add(obj.Address, obj);
             }
         }
 
         private void CleanMonitoringList()
         {
-            bool valid = false;
-            foreach (KeyValuePair<IntPtr, GameObject> entry in _plugin.TrackedPlayers)
+            foreach (KeyValuePair<IntPtr, GameObject> entry in Plugin.TrackedPlayers)
             {
+                bool valid = false;
                 var gameObject = entry.Value;
-                foreach (var obj in _objects)
+                foreach (var obj in Plugin.Objects)
                 {
                     if (IsStillValidTrack(obj.ObjectKind, obj, gameObject))
                     {
@@ -127,7 +129,8 @@ namespace BigBrother.Windows
                 }
                 if (!valid)
                 {
-                    _plugin.TrackedPlayers.Remove(entry.Key);
+                    PluginLog.Information($"Removing {gameObject.Name.TextValue}");
+                    Plugin.TrackedPlayers.Remove(entry.Key);
 
                 }
                 
